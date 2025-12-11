@@ -1,119 +1,144 @@
-# Projeto-G11
 # 🛰 SolarBot: Robô Autônomo de Limpeza de Placas Solares
----
 
-## 📘 Introdução
+> **Status:** 🚧 Concluido / 🟢 Funcional
 
-A eficiência das placas solares é diretamente afetada pelo acúmulo de poeira e detritos. A limpeza manual é um processo caro e demorado.  
-O *SolarBot* foi concebido como uma solução de baixo custo e alta eficácia para automatizar essa manutenção.
-
-Este documento é um guia prático para a montagem e programação do SolarBot — um protótipo que utiliza:
-
-- Motor *Lego NXT Mindstorm*
-- *Ponte H*
-- *Arduino UNO*
-
-O robô realiza a limpeza autônoma de painéis solares, invertendo o movimento ao atingir os limites da placa por meio de chaves de fim de curso.
+O **SolarBot** é uma solução de baixo custo e alta eficácia para automatizar a manutenção de painéis fotovoltaicos. Ele utiliza um sistema de sensores de fim de curso para percorrer a placa, limpar a superfície e inverter a direção automaticamente ao atingir as bordas.
 
 ---
 
-## 🔎 2. Visão Geral do Sistema
-
-O sistema opera em um ciclo contínuo de detecção de limites e reversão de movimento.  
-Quando uma chave é pressionada, o Arduino inverte a polaridade do motor pela Ponte H, fazendo o robô mudar de direção.
-
-### *Componentes Principais*
-- *Microcontrolador:* Arduino UNO  
-- *Atuador:* Servo Motor NXT Mindstorm  
-- *Driver:* Ponte H  
-- *Sensores de Limite:* Duas chaves de fim de curso (limit switches)  
-- *Estrutura:* Corpo do robô + mecanismo de locomoção  
-- *Eixo de Ferro:* Barra que guia o robô de ponta a ponta  
-- *Rolamentos:* Dois rolamentos que conectam o robô à barra para estabilização  
+## 📋 Tabela de Conteúdos
+1. [Visão Geral](#-visão-geral)
+2. [Lista de Materiais](#-lista-de-materiais)
+3. [Esquema de Ligação (Pinout)](#-esquema-de-ligação)
+4. [Instalação e Código](#-instalação-e-código)
+5. [Como Testar](#-como-testar)
 
 ---
 
-## ⚙ 3. Lógica de Funcionamento: Passo a Passo
+## 🔎 Visão Geral
 
-O projeto é dividido em três grandes etapas:  
-1. Montagem do hardware  
-2. Carregamento do software  
-3. Execução  
-
----
-
-### 🔧 *Etapa 1: Montagem do Hardware*
-
-Garante que os componentes estejam corretamente interligados para permitir o controle do motor e leitura dos sensores.
-
-#### *1. Chaves de Fim de Curso*
-- Fixar uma chave em cada extremidade da estrutura.  
-- Devem ser acionadas quando o robô atingir o limite da placa solar.
-
-#### *2. Ponte H e Motor NXT*
-- Saídas da Ponte H (*OUT1, **OUT2*) → terminais do motor NXT.  
-- Pinos de controle da Ponte H (*IN1, **IN2) → pinos **11* e *12* do Arduino.
-
-#### *3. Arduino e Sensores*
-- Pinos de sinal das chaves de limite → pinos *7* e *4* do Arduino.  
-- *Dica:* Utilize INPUT_PULLUP no código para eliminar necessidade de resistores externos.
+O sistema opera em um **ciclo contínuo**:
+1. O robô se move linearmente sobre a placa.
+2. Ao atingir a extremidade, uma **Chave de Fim de Curso** é pressionada.
+3. O Arduino detecta o clique e inverte a polaridade do motor através da **Ponte H**.
+4. O robô retorna limpando o sentido oposto até atingir o outro lado.
 
 ---
 
-### 💻 *Etapa 2: Carregamento do Código (Software)*
+## 📦 Lista de Materiais
 
-O software interpreta os sensores e envia comandos adequados ao motor.
-
-1. Instale a *IDE do Arduino*.  
-2. Abra o código-fonte do projeto.  
-3. Verifique se os pinos configurados no código correspondem à montagem (11, 12, 7 e 4).  
-4. Conecte o Arduino via USB.  
-5. Faça o *Upload* do sketch.
-### **Mapeamento de Pinos e Referência de Conexão**
-
-Abaixo, a referência para as conexões lógicas entre o Arduino e os componentes críticos:
-
-| Componente | Tipo de Conexão | Função | Pinos (Referência de Código) |
-| :--- | :--- | :--- | :--- |
-| **Ponte H (IN1)** | Saída Digital | Controla Sentido 1 / HIGH | `11` |
-| **Ponte H (IN2)** | Saída Digital | Controla Sentido 2 / LOW | `12` |
-| **Ponte H (ENA/ENB)** | Saída PWM/Digital | Habilitação do Motor / Velocidade | `5`|
-| **Fim de Curso A** | Entrada Digital | Limite de Posição 1 | `7` (Configurado como `INPUT_PULLUP`) |
-| **Fim de Curso B** | Entrada Digital | Limite de Posição 2 | `4` (Configurado como `INPUT_PULLUP`) |
-
+| Componente | Quantidade | Descrição |
+| :--- | :---: | :--- |
+| **Arduino UNO** | 1 | Microcontrolador principal. |
+| **Ponte H (L298N ou similar)** | 1 | Driver para controlar força e direção do motor. |
+| **Motor Lego NXT** | 1 | Atuador responsável pela locomoção. |
+| **Chaves Fim de Curso** | 2 | Sensores de colisão (com alavanca). |
+| **Fonte de Alimentação** | 2 | Bateria externa (9V) para o motor e ponte H. |
+| **Jumpers** | Vários | Cabos para conexão (Macho-Macho / Macho-Fêmea). |
+| **Barra de Aço** | 1 | Barra de suporte para o robô quando finalizado. |
+| **MDF** | 25 | Material utilizado para construção de toda a "Carcaça" do robô. |
+| **Rolamento linear** | 2 | Rolamento utilizado para o movimento do robô pela placa solar. |
 
 ---
 
-### ▶ *Etapa 3: Execução*
+## ⚡ Esquema de Ligação
 
-#### *Alimentação*
-⚠ O motor NXT exige *mais corrente* do que a porta USB fornece.  
-Use uma fonte externa para alimentar a Ponte H e o motor.
+Siga atentamente a tabela abaixo para conectar os componentes.
 
-#### *Teste*
-- Posicione o SolarBot na placa solar.  
+### 1. Conexão da Ponte H (Motor)
+| Pino da Ponte H | Conexão | Observação |
+| :--- | :--- | :--- |
+| **IN1** | Arduino Pino **11** | Controle de Sentido A. |
+| **IN2** | Arduino Pino **12** | Controle de Sentido B. |
+| **OUT1 / OUT2** | Motor NXT | Fios do motor. |
+| **9V** | Fonte Externa (+) | **NÃO** ligue no 5V do Arduino. |
+| **GND** | Fonte (-) + Arduino GND | **Importante:** Unir os terras (GNDs). |
 
-#### *Ação Esperada*
-- O robô inicia o movimento.  
-- Ao atingir uma borda → a chave de limite é acionada → o motor inverte o sentido → o robô continua a limpeza no sentido oposto.
-
----
-
-## 🏁 4. Conclusão e Impacto
-
-O SolarBot demonstra a viabilidade de sistemas autônomos para limpeza de painéis solares, promovendo:
-
-### *✔ Autonomia*
-Movimentação e reversão automática baseada em chaves de limite.
-
-### *✔ Eficiência Operacional*
-Redução de custos e tempo na manutenção de painéis.
-
-### *✔ Sustentabilidade*
-A limpeza constante aumenta a eficiência da geração de energia solar.
+### 2. Conexão dos Sensores (Fim de Curso)
+| Sensor | Perna da Chave | Conexão Arduino |
+| :--- | :--- | :--- |
+| **Chave Esquerda** | Comum (C) | GND |
+| **Chave Esquerda** | Normalmente Aberto (NO) | Pino **7** |
+| **Chave Direita** | Comum (C) | GND |
+| **Chave Direita** | Normalmente Aberto (NO) | Pino **4** |
 
 ---
 
+## 💻 Instalação e Código
 
+1. Baixe e instale a [Arduino IDE](https://www.arduino.cc/en/software).
+2. Conecte o Arduino via USB em um computador.
+3. Copie o código abaixo e faça o upload para a placa.
+4. Após o upload, pode retirar o USB do computador e conectar a bateria 9V (o Arduino armazena o código rodado anteriormente)
 
- 
+```cpp
+// Pinagem do Arduino
+// Pinagem do Arduino para 1 motor
+
+int IN1 = 11;         // controle do sentido
+int IN2 = 12;         // controle do sentido
+int velocidade = 5; // PWM (tem que ser um pino com acento til do Arduino)
+int fimcurso = 7;
+int fimcurso2 = 4;
+bool fimpress;
+bool fimpress2;
+int estado = 0;
+int counter = 0;
+
+// Variaveis auxiliares (se quiser variar algo no tempo)
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(velocidade, OUTPUT);
+  pinMode(fimcurso, INPUT_PULLUP);
+  pinMode(fimcurso2, INPUT_PULLUP);
+}
+
+void loop() { // Andar
+  if (estado == 0) {
+    Serial.println("Esta no estado ANDANDO");
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    analogWrite(velocidade, 200);
+    fimpress = digitalRead(fimcurso);
+    if (fimpress == HIGH) {
+      Serial.println("BOTAO 1 PRESSIONADO");
+      estado = 2;
+    }
+  }
+
+  if (estado == 2) { // Voltar
+    Serial.println("Esta no estado VOLTANDO");
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    analogWrite(velocidade, 200);
+  
+    fimpress2 = digitalRead(fimcurso2);
+    if (fimpress2 == HIGH) {
+      Serial.println("BOTAO 2 PRESSIONADO");
+      counter++;
+      if (counter == 3) {
+        counter = 0;
+        estado = 3;
+      }
+      else {
+        estado = 0;
+      }
+    }
+  } 
+
+  if (estado == 3) { // Parar
+    Serial.println("Esta no estado PARADO2");
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, LOW);
+    analogWrite(velocidade, 0);
+
+    fimpress = digitalRead(fimcurso); // reiniciar o percurso
+    if (fimpress == HIGH) {
+      delay(500); // esse delay e necessario
+      estado = 0;
+    }
+  }
+}
